@@ -3,5 +3,6 @@ __pycache__/
 *.pyc
 .env
 *.egg-info/
-  dist/
-  build/
+dist/
+build/
+chroma_db/

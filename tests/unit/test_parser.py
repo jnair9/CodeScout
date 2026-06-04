@@ -8,7 +8,7 @@ from app.ingestion.parser import parse_file
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), '..', 'fixtures', 'sample.py')
 
 def test_parser():
-    chunks = parse_file(FIXTURE_PATH, 'python')
+    chunks = parse_file(FIXTURE_PATH, 'python', 'https://github.com/jnair9/CodeScout')
 
     print(f"\nFound {len(chunks)} chunks:\n")
     for chunk in chunks:
