@@ -8,7 +8,9 @@ dependencies = [
     "pydantic",
     "gitpython",
     "tree-sitter",
-    "tree-sitter-python"
+    "tree-sitter-python",
+    "google-genai>=1.73.0",
+    "chromadb"
 ]
 
 [project.optional-dependencies]
