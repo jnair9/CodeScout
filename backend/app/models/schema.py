@@ -22,3 +22,6 @@ class Repo(BaseModel):
 
 class IngestRequest(BaseModel):
     repo_url: HttpUrl
+
+class QueyRequest(BaseModel):
+    query: str

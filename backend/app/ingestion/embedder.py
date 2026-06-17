@@ -10,6 +10,4 @@ def embedder(content):
             model="gemini-embedding-2",
             contents=content
     )
-
-    print(result.embeddings)
     return result.embeddings[0].values

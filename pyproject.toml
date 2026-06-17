@@ -10,7 +10,9 @@ dependencies = [
     "tree-sitter",
     "tree-sitter-python",
     "google-genai>=1.73.0",
-    "chromadb"
+    "chromadb",
+    "psycopg2-binary",
+    "sqlmodel"
 ]
 
 [project.optional-dependencies]
