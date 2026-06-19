@@ -21,5 +21,8 @@ def retrieve(query):
     results = collection.query(
         query_embeddings=[query],
         n_results=5,
+        include=["distances"]
         )
-    return [uuid.UUID(item) for item in results["ids"][0]]
+    ids = [uuid.UUID(item) for item in results["ids"][0]]
+    distances = results["distances"][0]
+    return list(zip(ids, distances))

@@ -13,7 +13,7 @@ def run_ingestion(ingestion_repo):
 
         for file in temp_path.rglob("*.py"):
             if file.is_file():
-                chunk = parse_file(str(file), "python", ingestion_repo)
+                chunk = parse_file(str(file.relative_to(temp_path)), "python", ingestion_repo)
                 chunks.extend(chunk)
     return chunks
 
