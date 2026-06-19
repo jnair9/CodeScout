@@ -1,11 +1,11 @@
 from typing import Optional
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, AnyUrl
 import uuid
 import datetime
 
 class CodeChunk(BaseModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
-    repo_url: HttpUrl
+    repo_url: AnyUrl
     file_path: str
     parent_class: Optional[str] = None
     symbol_name: str
@@ -21,7 +21,18 @@ class Repo(BaseModel):
     last_ingested_at : Optional[datetime.datetime] = None
 
 class IngestRequest(BaseModel):
-    repo_url: HttpUrl
+    repo_url: AnyUrl
 
 class QueyRequest(BaseModel):
     query: str
+
+class Citation(BaseModel) :
+    citation_number: int
+    symbol_name: str
+    file_path: str
+    start_line: int
+    end_line: int
+
+class Response(BaseModel):
+    answer: str
+    citations: list[Citation]

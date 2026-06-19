@@ -12,12 +12,14 @@ dependencies = [
     "google-genai>=1.73.0",
     "chromadb",
     "psycopg2-binary",
+    "python-dotenv",
     "sqlmodel"
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
+    "httpx",
 ]
 
 [tool.fastapi]
