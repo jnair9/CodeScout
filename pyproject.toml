@@ -13,7 +13,8 @@ dependencies = [
     "chromadb",
     "psycopg2-binary",
     "python-dotenv",
-    "sqlmodel"
+    "sqlmodel",
+    "rank-bm25",
 ]
 
 [project.optional-dependencies]

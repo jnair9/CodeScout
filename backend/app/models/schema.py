@@ -1,7 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, Field, HttpUrl, AnyUrl
 import uuid
-import datetime
 
 class CodeChunk(BaseModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
@@ -14,11 +13,6 @@ class CodeChunk(BaseModel):
     start_line: int
     end_line: int
     language: str
-
-class Repo(BaseModel):
-    repo_url : HttpUrl
-    last_commit_hash: Optional[str] = None
-    last_ingested_at : Optional[datetime.datetime] = None
 
 class IngestRequest(BaseModel):
     repo_url: AnyUrl
