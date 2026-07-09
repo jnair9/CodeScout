@@ -53,15 +53,18 @@ async def query_repo(request: QueryRequest, session: SessionDep):
     embedded_content = embedder(request.query)
     #query w/ embedded request 
     retrieved_ids_dists = retrieve(embedded_content, repo_url)
-    retrieved_ids, _ = zip(*retrieved_ids_dists)
-    statement = select(CodeChunkDB).where(col(CodeChunkDB.id).in_(retrieved_ids))
-    vector_results = session.exec(statement).all()
-    dist_map = {str(id): dist for id, dist in retrieved_ids_dists}
-    results = [chunk.model_dump(mode='json') for chunk in vector_results]
-    #add distances from query to returned CodeChunk
-    for res in results:
-        res["distance"] = dist_map[res["id"]]
-
+    if not retrieved_ids_dists:
+        results = []
+    else:
+        retrieved_ids, _ = zip(*retrieved_ids_dists)
+        statement = select(CodeChunkDB).where(col(CodeChunkDB.id).in_(retrieved_ids))
+        vector_results = session.exec(statement).all()
+        dist_map = {str(id): dist for id, dist in retrieved_ids_dists}
+        results = [chunk.model_dump(mode='json') for chunk in vector_results]
+        #add distances from query to returned CodeChunk
+        for res in results:
+            res["distance"] = dist_map[res["id"]]
+            
     #combine result
     vector_ids = set([res["id"] for res in results])
     for chunk in bm_results:
