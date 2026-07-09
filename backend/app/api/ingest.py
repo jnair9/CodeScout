@@ -32,7 +32,7 @@ def run_ingestion(ingestion_repo, session):
                 status, file = entry.split('\t')
                 if status != "D" and file.endswith(".py"):
                     if status == "M":
-                        old_files = session.exec(select(CodeChunkDB).where(col(CodeChunkDB.file_path == file))).all()
+                        old_files = session.exec(select(CodeChunkDB).where((CodeChunkDB.file_path == file))).all()
                         old_files_ids = [str(f.id) for f in old_files]
                         for del_file in old_files:
                             session.delete(del_file)
