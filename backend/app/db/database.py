@@ -3,6 +3,7 @@ from sqlmodel import Field, Session, SQLModel, create_engine, select
 from typing import Annotated
 import os
 from dotenv import load_dotenv
+from ..models.db import Repo
 
 load_dotenv()
 db_url = os.environ["DATABASE_URL"]
