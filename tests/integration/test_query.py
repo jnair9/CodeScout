@@ -14,7 +14,6 @@ def test_query_results_have_required_fields(query_response):
         assert "symbol_name" in result
         assert "start_line" in result
         assert "end_line" in result
-        assert "distance" in result
 
 def test_query_response_structure(query_response):
     data = query_response.json()

@@ -46,6 +46,7 @@ def setup_test_environment():
     yield
     with Session(engine) as session:
         session.exec(text("TRUNCATE TABLE code_chunks;"))
+        session.exec(text("TRUNCATE TABLE repo;"))
         session.commit()
     _clear_chroma()
 
@@ -53,6 +54,7 @@ def setup_test_environment():
 def clean_db():
     with Session(engine) as session:
         session.exec(text("TRUNCATE TABLE code_chunks;"))
+        session.exec(text("TRUNCATE TABLE repo;"))
         session.commit()
     _clear_chroma()
     yield
@@ -65,6 +67,7 @@ def client():
 def ingested_client(client):
     with Session(engine) as session:
         session.exec(text("TRUNCATE TABLE code_chunks;"))
+        session.exec(text("TRUNCATE TABLE repo;"))
         session.commit()
     _clear_chroma()
     # Wait for the Gemini embedding rate-limit window to reset after test_ingestion
@@ -74,4 +77,4 @@ def ingested_client(client):
 
 @pytest.fixture(scope="session")
 def query_response(ingested_client):
-    return ingested_client.post("/query/", json={"query": TEST_QUERY})
+    return ingested_client.post("/query/", json={"query": TEST_QUERY, "repo_url": TEST_REPO})
