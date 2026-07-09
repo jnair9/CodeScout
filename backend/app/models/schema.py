@@ -17,8 +17,9 @@ class CodeChunk(BaseModel):
 class IngestRequest(BaseModel):
     repo_url: AnyUrl
 
-class QueyRequest(BaseModel):
+class QueryRequest(BaseModel):
     query: str
+    repo_url: AnyUrl
 
 class Citation(BaseModel) :
     citation_number: int

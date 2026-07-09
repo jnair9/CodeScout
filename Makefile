@@ -29,5 +29,9 @@ test-db-stop:
 test-db-rm:
 	docker stop codescout-test-postgres && docker rm codescout-test-postgres
 
+db-clear:
+	docker exec codescout-postgres psql -U codescout -d codescout -c "TRUNCATE TABLE code_chunks; TRUNCATE TABLE repo;"
+	rm -rf chroma_db
+
 test:
 	pytest tests/integration/ -v

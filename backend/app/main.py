@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .models.schema import IngestRequest, QueyRequest
+from .models.schema import IngestRequest, QueryRequest
 from .api.ingest import run_ingestion
 from .ingestion.embedder import embedder
 from .ingestion.vector_store import store, retrieve
@@ -9,6 +9,7 @@ from .db.database import create_db_and_tables, SessionDep
 from sqlmodel import select, col
 from .generator.generator import generator
 from .ingestion.bm25 import get_bm_rank
+from .utils.utils import normalize_url
 import json
 
 @asynccontextmanager
@@ -20,7 +21,8 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post("/ingest/")
 async def trigger_ingestion(request: IngestRequest, session: SessionDep):
-    ingested_chunks = run_ingestion(str(request.repo_url), session)
+    repo_url = normalize_url(str(request.repo_url))
+    ingested_chunks = run_ingestion(repo_url, session)
     ingested_embeddings = [] 
     for chunk in ingested_chunks:
         content = None
@@ -35,21 +37,22 @@ async def trigger_ingestion(request: IngestRequest, session: SessionDep):
     store(ingested_chunks, ingested_embeddings)
     return {
         "message": "Ingestion started for repo.",
-        "url" : str(request.repo_url), 
+        "url" : repo_url, 
         "num chunks ingested" : len(ingested_chunks)
     }
 
 
 @app.post("/query/")
-async def query_repo(request: QueyRequest, session: SessionDep):
+async def query_repo(request: QueryRequest, session: SessionDep):
     #bm25 matches
-    corpus = session.exec(select(CodeChunkDB)).all()
+    repo_url = normalize_url(str(request.repo_url))
+    corpus = session.exec(select(CodeChunkDB).where(CodeChunkDB.repo_url == repo_url)).all()
     top_n_bm_res = get_bm_rank(request.query, corpus)
     bm_results = [chunk.model_dump(mode='json') for chunk in top_n_bm_res]
     #embed the request
     embedded_content = embedder(request.query)
     #query w/ embedded request 
-    retrieved_ids_dists = retrieve(embedded_content)
+    retrieved_ids_dists = retrieve(embedded_content, repo_url)
     retrieved_ids, _ = zip(*retrieved_ids_dists)
     statement = select(CodeChunkDB).where(col(CodeChunkDB.id).in_(retrieved_ids))
     vector_results = session.exec(statement).all()

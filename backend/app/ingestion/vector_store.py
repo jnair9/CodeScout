@@ -14,14 +14,18 @@ def store(chunks, embeddings):
         ids=[str(chunk.id)],
         embeddings=[
             embedding
+        ],
+        metadatas=[
+            {"repo_url": str(chunk.repo_url)},
         ]
 )
 
-def retrieve(query):
+def retrieve(query, repo_url):
     results = collection.query(
         query_embeddings=[query],
         n_results=5,
-        include=["distances"]
+        include=["distances"],
+        where={"repo_url": str(repo_url)}
         )
     ids = [uuid.UUID(item) for item in results["ids"][0]]
     distances = results["distances"][0]
