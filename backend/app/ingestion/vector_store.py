@@ -1,32 +1,30 @@
-import chromadb
-from pathlib import Path
+from sqlmodel import Session
+from sqlalchemy import text
+from ..models.db import CodeChunkDB
 import uuid
 
-DB_PATH = Path(__file__).parent.parent.parent.parent / "chroma_db"
-client = chromadb.PersistentClient(path=str(DB_PATH))
-collection = client.get_or_create_collection(name="CodeScout")
 
-
-
-def store(chunks, embeddings):
+def store(session: Session, chunks, embeddings):
     for chunk, embedding in zip(chunks, embeddings):
-        collection.add(
-        ids=[str(chunk.id)],
-        embeddings=[
-            embedding
-        ],
-        metadatas=[
-            {"repo_url": str(chunk.repo_url)},
-        ]
-)
+        db_chunk = session.get(CodeChunkDB, chunk.id)
+        if db_chunk:
+            db_chunk.embedding = list(embedding)
+            session.add(db_chunk)
+    session.commit()
 
-def retrieve(query, repo_url):
-    results = collection.query(
-        query_embeddings=[query],
-        n_results=5,
-        include=["distances"],
-        where={"repo_url": str(repo_url)}
-        )
-    ids = [uuid.UUID(item) for item in results["ids"][0]]
-    distances = results["distances"][0]
-    return list(zip(ids, distances))
+
+def retrieve(session: Session, query_embedding: list, repo_url: str):
+    embedding_str = '[' + ','.join(str(float(x)) for x in query_embedding) + ']'
+    result = session.execute(
+        text("""
+            SELECT id, embedding <-> CAST(:emb AS vector) AS distance
+            FROM code_chunks
+            WHERE repo_url = :repo_url
+            AND embedding IS NOT NULL
+            ORDER BY distance
+            LIMIT 5
+        """),
+        {"emb": embedding_str, "repo_url": repo_url}
+    )
+    rows = result.fetchall()
+    return [(uuid.UUID(str(row[0])), float(row[1])) for row in rows]

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from .models.schema import IngestRequest, QueryRequest
 from .api.ingest import run_ingestion
 from .ingestion.embedder import embedder
@@ -11,21 +12,30 @@ from .generator.generator import generator
 from .ingestion.bm25 import get_bm_rank
 from .utils.utils import normalize_url
 import json
+import os
 
 @asynccontextmanager
-async def lifespan(app : FastAPI):
+async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
 
 app = FastAPI(lifespan=lifespan)
 
+origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 @app.post("/ingest/")
 async def trigger_ingestion(request: IngestRequest, session: SessionDep):
     repo_url = normalize_url(str(request.repo_url))
     ingested_chunks = run_ingestion(repo_url, session)
-    ingested_embeddings = [] 
+    ingested_embeddings = []
     for chunk in ingested_chunks:
-        content = None
         if chunk.parent_class:
             content = f"title: {chunk.parent_class}.{chunk.symbol_name} | text: {chunk.content}"
         else:
@@ -34,25 +44,22 @@ async def trigger_ingestion(request: IngestRequest, session: SessionDep):
         ingested_embeddings.append(embedded_content)
         session.add(CodeChunkDB(**chunk.model_dump(mode='json')))
         session.commit()
-    store(ingested_chunks, ingested_embeddings)
+    store(session, ingested_chunks, ingested_embeddings)
     return {
         "message": "Ingestion started for repo.",
-        "url" : repo_url, 
-        "num chunks ingested" : len(ingested_chunks)
+        "url": repo_url,
+        "num chunks ingested": len(ingested_chunks)
     }
 
 
 @app.post("/query/")
 async def query_repo(request: QueryRequest, session: SessionDep):
-    #bm25 matches
     repo_url = normalize_url(str(request.repo_url))
     corpus = session.exec(select(CodeChunkDB).where(CodeChunkDB.repo_url == repo_url)).all()
     top_n_bm_res = get_bm_rank(request.query, corpus)
-    bm_results = [chunk.model_dump(mode='json') for chunk in top_n_bm_res]
-    #embed the request
+    bm_results = [chunk.model_dump(mode='json', exclude={'embedding'}) for chunk in top_n_bm_res]
     embedded_content = embedder(request.query)
-    #query w/ embedded request 
-    retrieved_ids_dists = retrieve(embedded_content, repo_url)
+    retrieved_ids_dists = retrieve(session, embedded_content, repo_url)
     if not retrieved_ids_dists:
         results = []
     else:
@@ -60,24 +67,20 @@ async def query_repo(request: QueryRequest, session: SessionDep):
         statement = select(CodeChunkDB).where(col(CodeChunkDB.id).in_(retrieved_ids))
         vector_results = session.exec(statement).all()
         dist_map = {str(id): dist for id, dist in retrieved_ids_dists}
-        results = [chunk.model_dump(mode='json') for chunk in vector_results]
-        #add distances from query to returned CodeChunk
+        results = [chunk.model_dump(mode='json', exclude={'embedding'}) for chunk in vector_results]
         for res in results:
             res["distance"] = dist_map[res["id"]]
-            
-    #combine result
+
     vector_ids = set([res["id"] for res in results])
     for chunk in bm_results:
         if chunk["id"] not in vector_ids:
             results.append(chunk)
 
-
     generated_response = generator(request.query, results)
-
 
     return {
         "query:": request.query,
-        "message" : "Retrieved relevant files and response ." if results and generated_response else "No relevant files or response detected.",
-        "results" : results,
-        "response" : json.loads(generated_response)
+        "message": "Retrieved relevant files and response." if results and generated_response else "No relevant files or response detected.",
+        "results": results,
+        "response": json.loads(generated_response)
     }
