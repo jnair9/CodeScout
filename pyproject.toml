@@ -10,7 +10,7 @@ dependencies = [
     "tree-sitter",
     "tree-sitter-python",
     "google-genai>=1.73.0",
-    "chromadb",
+    "pgvector",
     "psycopg2-binary",
     "python-dotenv",
     "sqlmodel",

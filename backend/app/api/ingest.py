@@ -4,7 +4,6 @@ from git import Repo as GitRepo
 from ..ingestion.parser import parse_file
 from sqlmodel import select, col
 from ..models.db import Repo, CodeChunkDB
-from ..ingestion.vector_store import collection
 
 
 def run_ingestion(ingestion_repo, session):
@@ -33,10 +32,8 @@ def run_ingestion(ingestion_repo, session):
                 if status != "D" and file.endswith(".py"):
                     if status == "M":
                         old_files = session.exec(select(CodeChunkDB).where((CodeChunkDB.file_path == file))).all()
-                        old_files_ids = [str(f.id) for f in old_files]
                         for del_file in old_files:
                             session.delete(del_file)
-                        collection.delete(ids=old_files_ids)
                     chunk = parse_file(file, "python", ingestion_repo)
                     chunks.extend(chunk)
             repo_exists.last_commit_hash = curr_commit
