@@ -316,8 +316,8 @@ function MainApp({ onBack }: { onBack: () => void }) {
       ) : (
         /* ── Chat state: scrollable thread + fixed bottom input ── */
         <>
-          <div className="flex-1 overflow-y-auto pt-20 pb-40 px-6">
-            <div className="max-w-2xl mx-auto flex flex-col gap-10 py-8">
+          <div className="flex-1 overflow-y-auto pt-20 pb-40 px-6 flex flex-col items-center">
+            <div className="w-full max-w-2xl flex flex-col gap-10 py-8">
               {ingestedUrl && (
                 <div className="flex items-center gap-2 text-[12px]" style={{ color: 'rgba(110,231,183,0.45)' }}>
                   <CheckCircle size={11} />
