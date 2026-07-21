@@ -18,7 +18,7 @@ def run_ingestion(ingestion_repo, session):
         if not repo_exists:
             for file in temp_path.rglob("*.py"):
                 if file.is_file():
-                    chunk = parse_file(str(file.relative_to(temp_path)), "python", ingestion_repo)
+                    chunk = parse_file(str(file), "python", ingestion_repo, stored_path=str(file.relative_to(temp_path)))
                     chunks.extend(chunk)
             new_repo = Repo(repo_url=ingestion_repo, last_commit_hash=curr_commit, last_ingested_at=curr_commit_time)
             session.add(new_repo)
@@ -34,7 +34,7 @@ def run_ingestion(ingestion_repo, session):
                         old_files = session.exec(select(CodeChunkDB).where((CodeChunkDB.file_path == file))).all()
                         for del_file in old_files:
                             session.delete(del_file)
-                    chunk = parse_file(file, "python", ingestion_repo)
+                    chunk = parse_file(str(temp_path / file), "python", ingestion_repo, stored_path=file)
                     chunks.extend(chunk)
             repo_exists.last_commit_hash = curr_commit
             repo_exists.last_ingested_at = curr_commit_time

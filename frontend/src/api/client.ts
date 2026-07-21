@@ -47,7 +47,12 @@ export async function ingestRepo(repoUrl: string): Promise<IngestResponse> {
   return data
 }
 
-export async function queryRepo(query: string, repoUrl: string): Promise<QueryResponse> {
-  const { data } = await api.post('/query/', { query, repo_url: repoUrl })
+export interface HistoryMessage {
+  role: 'user' | 'model'
+  content: string
+}
+
+export async function queryRepo(query: string, repoUrl: string, history: HistoryMessage[] = []): Promise<QueryResponse> {
+  const { data } = await api.post('/query/', { query, repo_url: repoUrl, history })
   return data
 }

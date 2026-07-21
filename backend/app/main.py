@@ -58,7 +58,11 @@ async def query_repo(request: QueryRequest, session: SessionDep):
     corpus = session.exec(select(CodeChunkDB).where(CodeChunkDB.repo_url == repo_url)).all()
     top_n_bm_res = get_bm_rank(request.query, corpus)
     bm_results = [chunk.model_dump(mode='json', exclude={'embedding'}) for chunk in top_n_bm_res]
-    embedded_content = embedder(request.query)
+    retrieval_query = request.query
+    if request.history:
+        recent_context = " ".join(m.content for m in request.history[-3:] if m.role == "user")
+        retrieval_query = f"{recent_context} {request.query}"
+    embedded_content = embedder(retrieval_query)
     retrieved_ids_dists = retrieve(session, embedded_content, repo_url)
     if not retrieved_ids_dists:
         results = []
@@ -76,7 +80,7 @@ async def query_repo(request: QueryRequest, session: SessionDep):
         if chunk["id"] not in vector_ids:
             results.append(chunk)
 
-    generated_response = generator(request.query, results)
+    generated_response = generator(request.query, results, request.history)
 
     return {
         "query:": request.query,

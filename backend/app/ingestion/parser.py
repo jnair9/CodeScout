@@ -2,7 +2,7 @@ from ..models.schema import CodeChunk
 import tree_sitter_python as tspython
 from tree_sitter import Language, Parser
 
-def parse_file(file_path: str, language: str, repo_url: str) -> list[CodeChunk]:
+def parse_file(file_path: str, language: str, repo_url: str, stored_path: str = None) -> list[CodeChunk]:
     #Set up correct language and parser
     if not file_path or not language:
         raise ValueError("Filepath and language is required")
@@ -16,7 +16,7 @@ def parse_file(file_path: str, language: str, repo_url: str) -> list[CodeChunk]:
     parser = Parser(PY_LANGUAGE)
     tree = parser.parse(content)
     chunks = []
-    traverse_dfs(tree.root_node, None, chunks, content, file_path, language, repo_url)
+    traverse_dfs(tree.root_node, None, chunks, content, stored_path or file_path, language, repo_url)
     return chunks
 
 def traverse_dfs(node, parent_class, chunks, content, file_path, language, repo_url):

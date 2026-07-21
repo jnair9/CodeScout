@@ -17,9 +17,14 @@ class CodeChunk(BaseModel):
 class IngestRequest(BaseModel):
     repo_url: AnyUrl
 
+class HistoryMessage(BaseModel):
+    role: str
+    content: str
+
 class QueryRequest(BaseModel):
     query: str
     repo_url: AnyUrl
+    history: list[HistoryMessage] = []
 
 class Citation(BaseModel) :
     citation_number: int
