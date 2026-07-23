@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { ingestRepo, queryRepo } from './api/client'
-import type { QueryResponse, HistoryMessage } from './api/client'
+import { ingestRepo, queryRepo, generateSkillFile } from './api/client'
+import type { QueryResponse, HistoryMessage, SkillFileResponse } from './api/client'
 import Landing from './components/Landing'
 import DevLogger from './components/DevLogger'
 import ChatMessage from './components/ChatMessage'
+import SkillFileModal from './components/SkillFileModal'
 import { useLogger } from './context/LoggerContext'
-import { Search, GitBranch, CheckCircle, AlertCircle, Terminal, ArrowLeft, Loader2 } from 'lucide-react'
+import { Search, GitBranch, CheckCircle, AlertCircle, Terminal, ArrowLeft, Loader2, FileCode } from 'lucide-react'
 import './index.css'
 
 interface ChatEntry {
@@ -36,6 +37,7 @@ function MainApp({ onBack }: { onBack: () => void }) {
   const [loggerOpen, setLoggerOpen] = useState(false)
   const [messages, setMessages] = useState<ChatEntry[]>([])
   const [history, setHistory] = useState<HistoryMessage[]>([])
+  const [skillFile, setSkillFile] = useState<SkillFileResponse | null>(null)
   const { addLog, updateLog } = useLogger()
   const bottomRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -109,6 +111,11 @@ function MainApp({ onBack }: { onBack: () => void }) {
       setQuery('')
       setTimeout(() => inputRef.current?.focus(), 50)
     },
+  })
+
+  const skillFileMutation = useMutation({
+    mutationFn: () => generateSkillFile(ingestedUrl ?? repoUrl),
+    onSuccess: (data) => setSkillFile(data),
   })
 
   const handleIngest = (e: React.FormEvent) => {
@@ -239,6 +246,23 @@ function MainApp({ onBack }: { onBack: () => void }) {
                       {ingest.data.url}
                     </span>
                   </span>
+                  <button
+                    onClick={() => skillFileMutation.mutate()}
+                    disabled={skillFileMutation.isPending}
+                    className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all disabled:opacity-50"
+                    style={{
+                      background: 'rgba(99,102,241,0.15)',
+                      border: '1px solid rgba(99,102,241,0.25)',
+                      color: '#a5b4fc',
+                      letterSpacing: '-0.01em',
+                    }}
+                  >
+                    {skillFileMutation.isPending
+                      ? <Loader2 size={11} className="animate-spin" />
+                      : <FileCode size={11} />
+                    }
+                    {skillFileMutation.isPending ? 'Generating…' : 'Generate CLAUDE.md'}
+                  </button>
                 </div>
               )}
 
@@ -398,6 +422,7 @@ function MainApp({ onBack }: { onBack: () => void }) {
         </>
       )}
 
+      {skillFile && <SkillFileModal data={skillFile} repoUrl={ingestedUrl ?? repoUrl} onClose={() => setSkillFile(null)} />}
       <DevLogger open={loggerOpen} onClose={() => setLoggerOpen(false)} />
     </div>
   )
