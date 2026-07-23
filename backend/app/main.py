@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .models.schema import IngestRequest, QueryRequest, SkillFileRequest
+from .models.schema import IngestRequest, QueryRequest, SkillFileRequest, BenchmarkRequest
 from .api.ingest import run_ingestion
 from .ingestion.embedder import embedder
 from .ingestion.vector_store import store, retrieve
@@ -10,6 +10,7 @@ from .db.database import create_db_and_tables, SessionDep
 from sqlmodel import select, col
 from .generator.generator import generator
 from .generator.skillfile import generate_skill_file
+from .generator.benchmark import run_benchmark
 from .ingestion.bm25 import get_bm_rank
 from .utils.utils import normalize_url
 import json
@@ -96,3 +97,10 @@ async def skill_file(request: SkillFileRequest, session: SessionDep):
     repo_url = normalize_url(str(request.repo_url))
     chunks = session.exec(select(CodeChunkDB).where(CodeChunkDB.repo_url == repo_url)).all()
     return generate_skill_file(chunks, repo_url)
+
+
+@app.post("/benchmark/")
+async def benchmark(request: BenchmarkRequest, session: SessionDep):
+    repo_url = normalize_url(str(request.repo_url))
+    chunks = session.exec(select(CodeChunkDB).where(CodeChunkDB.repo_url == repo_url)).all()
+    return run_benchmark(chunks, request.skill_file_markdown, request.task)

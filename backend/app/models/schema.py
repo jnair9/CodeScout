@@ -46,3 +46,8 @@ class SkillFileResponse(BaseModel):
     estimated_codebase_tokens: int
     reduction_pct: float
     chunks_processed: int
+
+class BenchmarkRequest(BaseModel):
+    repo_url: AnyUrl
+    task: str
+    skill_file_markdown: str
