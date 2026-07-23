@@ -69,3 +69,30 @@ export async function generateSkillFile(repoUrl: string): Promise<SkillFileRespo
   const { data } = await api.post('/skillfile/', { repo_url: repoUrl })
   return data
 }
+
+export interface BenchmarkRun {
+  input_tokens: number
+  output_tokens: number
+  answer_preview: string
+}
+
+export interface BenchmarkResponse {
+  task: string
+  no_context: BenchmarkRun
+  raw_codebase: BenchmarkRun
+  skill_file: BenchmarkRun
+  skill_vs_raw_input_reduction_pct: number
+}
+
+export async function runBenchmark(
+  repoUrl: string,
+  task: string,
+  skillFileMarkdown: string,
+): Promise<BenchmarkResponse> {
+  const { data } = await api.post('/benchmark/', {
+    repo_url: repoUrl,
+    task,
+    skill_file_markdown: skillFileMarkdown,
+  })
+  return data
+}
