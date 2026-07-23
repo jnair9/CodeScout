@@ -357,10 +357,10 @@ function MainApp({ onBack }: { onBack: () => void }) {
           </div>
 
           <div
-            className="fixed bottom-0 left-0 right-0 z-20 px-6 pb-6 pt-10"
+            className="fixed bottom-0 left-0 right-0 z-20 px-6 pb-6 pt-10 flex justify-center"
             style={{ background: 'linear-gradient(to top, rgba(0,0,0,1) 55%, transparent)' }}
           >
-            <div className="max-w-2xl mx-auto">
+            <div className="w-full max-w-2xl">
               <form onSubmit={handleQuery}>
                 <div
                   className={`input-field rounded-2xl px-5 py-4 flex items-center gap-4 ${search.isPending ? 'input-loading' : ''}`}

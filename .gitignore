@@ -6,4 +6,4 @@ __pycache__/
 dist/
 build/
 chroma_db/
-.cloudrun.env.yaml.cloudrun.env.yaml
+.cloudrun.env.yaml
