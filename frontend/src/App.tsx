@@ -266,6 +266,21 @@ function MainApp({ onBack }: { onBack: () => void }) {
                 </div>
               )}
 
+              {skillFileMutation.isError && (
+                <div
+                  className="anim-fade-in flex items-center gap-2.5 px-5 py-3 rounded-xl text-[13px]"
+                  style={{
+                    background: 'rgba(239,68,68,0.07)',
+                    border: '1px solid rgba(239,68,68,0.18)',
+                    color: '#fca5a5',
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  <AlertCircle size={14} className="shrink-0" />
+                  Skill file generation failed — {(skillFileMutation.error as any)?.response?.data?.detail ?? 'check that the backend is deployed with the latest changes'}
+                </div>
+              )}
+
               {ingest.isError && (
                 <div
                   className="anim-fade-in flex items-center gap-2.5 px-5 py-3 rounded-xl text-[13px]"
