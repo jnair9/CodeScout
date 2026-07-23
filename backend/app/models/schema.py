@@ -36,3 +36,13 @@ class Citation(BaseModel) :
 class Response(BaseModel):
     answer: str
     citations: list[Citation]
+
+class SkillFileRequest(BaseModel):
+    repo_url: AnyUrl
+
+class SkillFileResponse(BaseModel):
+    markdown: str
+    skill_file_tokens: int
+    estimated_codebase_tokens: int
+    reduction_pct: float
+    chunks_processed: int

@@ -56,3 +56,16 @@ export async function queryRepo(query: string, repoUrl: string, history: History
   const { data } = await api.post('/query/', { query, repo_url: repoUrl, history })
   return data
 }
+
+export interface SkillFileResponse {
+  markdown: string
+  skill_file_tokens: number
+  estimated_codebase_tokens: number
+  reduction_pct: number
+  chunks_processed: number
+}
+
+export async function generateSkillFile(repoUrl: string): Promise<SkillFileResponse> {
+  const { data } = await api.post('/skillfile/', { repo_url: repoUrl })
+  return data
+}

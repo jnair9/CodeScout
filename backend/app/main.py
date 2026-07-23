@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .models.schema import IngestRequest, QueryRequest
+from .models.schema import IngestRequest, QueryRequest, SkillFileRequest
 from .api.ingest import run_ingestion
 from .ingestion.embedder import embedder
 from .ingestion.vector_store import store, retrieve
@@ -9,6 +9,7 @@ from .models.db import CodeChunkDB
 from .db.database import create_db_and_tables, SessionDep
 from sqlmodel import select, col
 from .generator.generator import generator
+from .generator.skillfile import generate_skill_file
 from .ingestion.bm25 import get_bm_rank
 from .utils.utils import normalize_url
 import json
@@ -88,3 +89,10 @@ async def query_repo(request: QueryRequest, session: SessionDep):
         "results": results,
         "response": json.loads(generated_response)
     }
+
+
+@app.post("/skillfile/")
+async def skill_file(request: SkillFileRequest, session: SessionDep):
+    repo_url = normalize_url(str(request.repo_url))
+    chunks = session.exec(select(CodeChunkDB).where(CodeChunkDB.repo_url == repo_url)).all()
+    return generate_skill_file(chunks, repo_url)
