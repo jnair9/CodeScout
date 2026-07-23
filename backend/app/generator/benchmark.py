@@ -15,9 +15,9 @@ def _call(prompt: str) -> dict:
     )
     meta = response.usage_metadata
     return {
-        "input_tokens": meta.prompt_token_count,
-        "output_tokens": meta.candidates_token_count,
-        "answer_preview": (response.text or "")[:300].strip(),
+        "input_tokens": meta.prompt_token_count or 0,
+        "output_tokens": (meta.candidates_token_count or 0) + (getattr(meta, "thoughts_token_count", None) or 0),
+        "answer_preview": (response.text or "").strip(),
     }
 
 
