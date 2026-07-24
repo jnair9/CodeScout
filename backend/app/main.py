@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .models.schema import IngestRequest, QueryRequest, SkillFileRequest, BenchmarkRequest
 from .api.ingest import run_ingestion
@@ -96,11 +96,21 @@ async def query_repo(request: QueryRequest, session: SessionDep):
 async def skill_file(request: SkillFileRequest, session: SessionDep):
     repo_url = normalize_url(str(request.repo_url))
     chunks = session.exec(select(CodeChunkDB).where(CodeChunkDB.repo_url == repo_url)).all()
-    return generate_skill_file(chunks, repo_url)
+    if not chunks:
+        raise HTTPException(status_code=404, detail=f"No indexed chunks found for {repo_url}. Ingest the repo first.")
+    try:
+        return generate_skill_file(chunks, repo_url)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/benchmark/")
 async def benchmark(request: BenchmarkRequest, session: SessionDep):
     repo_url = normalize_url(str(request.repo_url))
     chunks = session.exec(select(CodeChunkDB).where(CodeChunkDB.repo_url == repo_url)).all()
-    return run_benchmark(chunks, request.skill_file_markdown, request.task)
+    if not chunks:
+        raise HTTPException(status_code=404, detail=f"No indexed chunks found for {repo_url}. Ingest the repo first.")
+    try:
+        return run_benchmark(chunks, request.skill_file_markdown, request.task)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

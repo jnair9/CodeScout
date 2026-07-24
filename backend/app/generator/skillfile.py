@@ -70,10 +70,14 @@ def generate_skill_file(chunks, repo_url: str) -> dict:
         config={
             "response_mime_type": "application/json",
             "response_schema": CodebaseContext,
+            "thinking_config": {"thinking_budget": 0},
         },
     )
 
-    ctx = json.loads(response.text)
+    raw = response.text or ""
+    if not raw.strip():
+        raise ValueError("Gemini returned an empty response for skill file generation")
+    ctx = json.loads(raw)
     markdown = _assemble_markdown(ctx, repo_url)
 
     token_response = client.models.count_tokens(
