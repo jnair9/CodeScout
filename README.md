@@ -1,5 +1,7 @@
 # CodeScout
 
+**Live:** [codescoutapp.netlify.app](https://codescoutapp.netlify.app/)
+
 CodeScout is an AI-powered developer onboarding platform. Give it a GitHub repo URL, and you can ask natural language questions and get answers grounded in exact files and line numbers. It also generates a `CLAUDE.md` skill file — a compressed, repo-specific context file that makes AI coding assistants significantly more token-efficient when working in that codebase.
 
 ---
